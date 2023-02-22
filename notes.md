@@ -439,11 +439,15 @@ function Profile(props) {
 }
 
 ```
-- This forwards all of Profile’s props to the Avatar without listing each of their names.
-- **Use spread syntax with restraint**.
+
+-   This forwards all of Profile’s props to the Avatar without listing each of their names.
+-   **Use spread syntax with restraint**.
+
 ### Passing JSX as children
-- When you nest content inside a JSX tag, the parent component will receive that content in a prop called children.
-``` 
+
+-   When you nest content inside a JSX tag, the parent component will receive that content in a prop called children.
+
+```
 function Card({ children }) {
   return (
     <div className="card">
@@ -452,8 +456,263 @@ function Card({ children }) {
   );
 }
 ```
+
 ### How props change over time
-- Props reflect a component’s data at any point in time, rather than only in the beginning.
-- When a component needs to change its props (for example, in response to a user interaction or new data), it will have to “ask” its parent component to pass it different props—a new object!
+
+-   Props reflect a component’s data at any point in time, rather than only in the beginning.
+-   When a component needs to change its props (for example, in response to a user interaction or new data), it will have to “ask” its parent component to pass it different props—a new object!
 
 ## Conditional Rendering
+
+In React, you can conditionally render JSX using JavaScript syntax like if statements, &&, and ? : operators.
+
+### Conditionally returning JSX
+
+You can write this as an if/else statement like so:
+
+```
+  if (isPacked) {
+  return <li className="item">{name} ✔</li>;
+}
+return <li className="item">{name}</li>;
+```
+
+### Conditionally returning nothing with null
+
+```
+if (isPacked) {
+  return null;
+}
+return <li className="item">{name}</li>;
+```
+
+If isPacked is true, the component will return nothing, null. Otherwise, it will return JSX to render.
+
+### Conditionally including JSX
+
+```
+if (isPacked) {
+  return <li className="item">{name} ✔</li>;
+}
+return <li className="item">{name}</li>;
+```
+
+In such a situation, you could conditionally include a little JSX to make your code more DRY
+
+### Conditional (ternary) operator (? :)
+
+JavaScript has a compact syntax for writing a conditional expression — the conditional operator or “ternary operator”
+
+```
+return (
+  <li className="item">
+    {isPacked ? name + ' ✔' : name}
+  </li>
+);
+```
+
+You can read it as “if isPacked is true, then (?) render name + ' ✔', otherwise (:) render name”.
+
+### Logical AND operator (&&)
+
+-   it often comes up when you want to render some JSX when the condition is true, or render nothing otherwise.
+
+```
+return (
+  <li className="item">
+    {name} {isPacked && '✔'}
+  </li>
+);
+```
+
+-   You can read this as “if isPacked, then (&&) render the checkmark, otherwise, render nothing”.
+    (\*) : Don’t put numbers on the left side of &&
+-   For example, a common mistake is to write code like messageCount && <p>New messages</p>. It’s easy to assume that it renders nothing when messageCount is 0, but it really renders the 0 itself!
+-   To fix it, make the left side a boolean: messageCount > 0 && <p>New messages</p>.
+
+### Conditionally assigning JSX to a variable
+
+```
+let itemContent = name;
+  if (isPacked) {
+  itemContent = name + " ✔";
+}
+<li className="item">
+  {itemContent}
+</li>
+
+```
+
+## Rendering Lists
+
+### Rendering data from arrays
+
+a short example of how to generate a list of items from an array:
+
+1. Move the data into an array:
+
+```
+const people = [
+  'Creola Katherine Johnson: mathematician',
+  'Mario José Molina-Pasquel Henríquez: chemist',
+  'Mohammad Abdus Salam: physicist',
+  'Percy Lavon Julian: chemist',
+  'Subrahmanyan Chandrasekhar: astrophysicist'
+];
+```
+
+2. Map the people members into a new array of JSX nodes, listItems
+
+```
+const listItems = people.map(person => <li>{person}</li>);
+```
+
+3. Return listItems from your component wrapped in a `<ul>`:
+   `return <ul>{listItems}</ul>;`
+
+### Filtering arrays of items
+
+```
+const people = [{
+  id: 0,
+  name: 'Creola Katherine Johnson',
+  profession: 'mathematician',
+}, {
+  id: 1,
+  name: 'Mario José Molina-Pasquel Henríquez',
+  profession: 'chemist',
+}, {
+  id: 2,
+  name: 'Mohammad Abdus Salam',
+  profession: 'physicist',
+}, {
+  name: 'Percy Lavon Julian',
+  profession: 'chemist',
+}, {
+  name: 'Subrahmanyan Chandrasekhar',
+  profession: 'astrophysicist',
+}];
+```
+
+-   Let’s say you want a way to only show people whose profession is 'chemist'
+
+1. Create a new array of just “chemist” people, chemists, by calling filter() on the people filtering by person.profession === 'chemist'
+
+```
+const chemists = people.filter(person =>
+  person.profession === 'chemist'
+);
+```
+
+2. Now map over chemists:
+
+```
+const listItems = chemists.map(person =>
+  <li>
+     <img
+       src={getImageUrl(person)}
+       alt={person.name}
+     />
+     <p>
+       <b>{person.name}:</b>
+       {' ' + person.profession + ' '}
+       known for {person.accomplishment}
+     </p>
+  </li>
+);
+```
+
+3. Lastly, return the listItems from your component:
+   `return <ul>{listItems}</ul>;`
+
+### Keeping list items in order with key
+
+-   You need to give each array item a key — a string or a number that uniquely identifies it among other items in that array:
+    `<li key={person.id}>...</li> `
+-   JSX elements directly inside a map() call always need keys!
+
+#### Where to get your key
+
+Different sources of data provide different sources of keys:
+
+-   Data from a database: If your data is coming from a database, you can use the database keys/IDs, which are unique by nature.
+-   Locally generated data: If your data is generated and persisted locally (e.g. notes in a note-taking app), use an incrementing counter, crypto.randomUUID() or a package like uuid when creating items.
+
+#### Rules of keys
+
+-   Keys must be unique among siblings.
+-   Keys must not change or that defeats their purpose! Don’t generate them while rendering.
+
+#### Why does React need keys?
+
+-   They let us uniquely identify an item between its siblings.
+-   do not generate keys on the fly, e.g. with key={Math.random()} use a stable ID based on the data.
+
+## Keeping Components Pure
+
+-   Some JavaScript functions are pure. Pure functions only perform a calculation and nothing more.
+
+### Purity: Components as formulas
+
+A pure function is a function with the following characteristics:
+
+-   It minds its own business. It does not change any objects or variables that existed before it was called
+-   Same inputs, same output. Given the same inputs, a pure function should always return the same result.
+-   React assumes that every component you write is a pure function
+
+### Side Effects: (un)intended consequences
+
+-   React’s rendering process must always be pure. Components should only return their JSX, and not change any objects or variables that existed before rendering—that would make them impure!
+-   Here is a component that breaks this rule:
+
+```
+function Cup() {
+  // Bad: changing a preexisting variable!
+  guest = guest + 1;
+  return <h2>Tea cup for guest #{guest}</h2>;
+}
+```
+
+-   This component is reading and writing a guest variable declared outside of it. This means that _calling this component multiple times will produce different JSX_!
+    You can fix this component by _passing guest as a prop instead_:
+
+```
+function Cup({ guest }) {
+  return <h2>Tea cup for guest #{guest}</h2>;
+}
+
+export default function TeaSet() {
+  return (
+    <>
+      <Cup guest={1} />
+      <Cup guest={2} />
+      <Cup guest={3} />
+    </>
+  );
+}
+```
+- In React there are three kinds of inputs that you can read while rendering: *props, state, and context*. You should always treat these inputs as read-only.
+- Should set state instead of writing to a variable
+- By calling the component functions *twice*, Strict Mode helps find components that break these rules.
+- Pure functions only calculate, so calling them twice won’t change anything
+- Strict Mode has no effect in production
+#### Local mutation: Your component’s little secret
+- a *“mutation”* - the component changed a preexisting variable while rendering
+- it’s completely fine to change variables and objects that you’ve just created while rendering
+``` 
+let cups = [];
+  for (let i = 1; i <= 12; i++) {
+    cups.push(<Cup key={i} guest={i} />);
+  }
+```
+- array cups is created them during the same render, inside **TeaGathering**
+- This is called “local mutation”
+### Where you can cause side effects
+- These changes—updating the screen, starting an animation, changing the data—are called side effects.
+- They’re things that happen “on the side”, not during rendering.
+- In React, side effects usually belong inside event handlers - click to perform some actions
+- Even though event handlers are defined inside your component, they don’t run during rendering! So *event handlers* don’t need to be pure.
+### Why does React care about purity?
+- Your components could run in a different environment—for example, on the server! (same inputs, one component can serve many user requests.)
+- You can improve performance by skipping rendering components whose inputs have not changed, safe to cache
+- Purity makes it safe to stop calculating at any time.
